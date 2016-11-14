@@ -418,15 +418,14 @@ seed.mass<-seq(0.01,5, 0.01)
 #L<-seq(80, 365, 1)
 
 #m<-c(0.5,0.6,0.7,0.8,0.9)
-SM<-seed.mass
-w = 0.9
-#m=0.5
-Lmax= 365 # length of year
-tau=80 #days to germination ; change from 0 to 100
-p= 0.5 #probability of germination or germination fraction
-Y=100 #repoductive output
-r=0.001 #growth rate
-s=1
+SM 	<-	seed.mass
+w 	= 	0.9
+Lmax	= 	365 # length of year
+tau	=	80 #days to germination ; change from 0 to 100
+p	= 	0.5 #probability of germination or germination fraction
+Y	=	100 #repoductive output
+r	=	0.001 #growth rate
+s	=	1
 
 
 evaluate.L<-function(L, SM, w) #L is length of the favorable season
