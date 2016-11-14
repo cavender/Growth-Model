@@ -22,8 +22,7 @@ s             =      1     # seed mortality constant
 
 i             <-     1
 SM            <-     seed.mass
-n             <-     Y/SM[i]
-n             <-     as.numeric(n)
+
 
 ##############################################
 #Function to calculate growth over two seasons
@@ -31,7 +30,8 @@ n             <-     as.numeric(n)
 
 y2<-function(L, params, SM) 
 {
-	D           <-     params$D      #Dormancy D=1 ; (D=0 for nondormancy)
+  n           <-     params$n      #number of seeds
+  D           <-     params$D      #Dormancy D=1 ; (D=0 for nondormancy)
 	s           <-     params$s      #seed mortality constant
 	G           <-     params$G      #Growth under non-dormancy model; G=0 for dormancy; G=1 for non-dormancy 
 	Y           <-     params$Y      #cohort yield
@@ -39,15 +39,17 @@ y2<-function(L, params, SM)
 	r           <-     params$r      #intrinsic growth rate of seedlings
 	Lmax        <-     params$Lmax   #maximum length of growing season - 365 days
 	w           <-     params$w      #mortality parameter for seedlings
-	n           <-     params$n      #number of seeds
 	tau         <-     params$tau    #time it takes from start of growing season for seeds to mature
 
+	n           <-     Y/SM
+	n           <-     as.numeric(n)
+	
 	Gf          <-     G*Y*p*exp(r*(L-tau))      # for non-dormancy G=1
 	Mg          <-     Gf/(n*p)                  # Mass of plant following germination
 	LL          <-     (Lmax-L)/Lmax             # fraction of the year that is favorable
 	M           <-     1-(w-(1/(1+exp(Mg))))	   # M<-(1/Mg)^w
 	Yfu         <-     Gf*(1-(M*(LL)))           # growth during favorable and unfavorable season; this is only calculated for non-dormancy, otherwise 0
-	R           <-     s-(1/(s+exp(log(SM[i])))) # Risk of seed predation - daily mortality rate of seeds 
+	R           <-     s-(1/(s+exp(log(SM)))) # Risk of seed predation - daily mortality rate of seeds 
 	S           <-     D*Y*(1-(R*LL))            # Cohort biomass at the beginning of the second growing season; this is calculated for dormancy model
 	y2          <-     (Yfu+S)*D*p*exp(r*L)+((Yfu*G)*exp(r*L)) #Cohort biomass at the end of the second year of growth; with dormancy, Yfu + S is just S, since Yfu goes to 0
 	
@@ -60,7 +62,7 @@ y2<-function(L, params, SM)
 
 params        <-     list("s"=s, "Lmax"=Lmax, "tau"=tau, "p"=p, "Y"=Y,"r"=r, "D"=0, "G"=1,  "n"=n, "w"=w)
 
-Y2            <-     y2(L, params,SM[1]) #non-dormancy
+Y2            <-     y2(L, params,SM[10]) #non-dormancy
 
 Y2            #print growth values for different lengths of the growing season
 
@@ -86,7 +88,7 @@ par(mar=c(5, 5, 4, 4))
 
 
 plot(L, y2(L, params1,SM[i+6]), xlab="Favorable season (days)", ylab="Cohort Growth", cex=.1, cex.lab = 1.5, ylim=c(0,100))
-lines(L, y2(L, params,SM[i]), type = "l", lty="solid", lwd =3, col="darkred")
+lines(L, y2(L, params,SM[i+6]), type = "l", lty="solid", lwd =3, col="darkred")
 lines(L, y2(L, params1,SM[i+6]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "blue"))( 11 )[10] )
 box(which = "plot", lty = "solid", col="black", lwd=3)
 
@@ -103,14 +105,14 @@ box(which = "plot", lty = "solid", col="black", lwd=3)
 #par(mar=c(5, 5, 4, 4))
 plot(L, y2(L, params,SM[1]), xlab="Favorable season (days)", ylab="Cohort Growth", cex=.1, cex.lab = 1.5)
 lines(L, y2(L, params,SM[1]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "red"))( 11 )[2] )
-lines(L, y2(L, params,SM[4]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "red"))( 11 )[6] )
+lines(L, y2(L, params,SM[i+3]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "red"))( 11 )[6] )
 lines(L, y2(L, params,SM[7]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "red"))( 11 )[10] )
 box(which = "plot", lty = "solid", col="black", lwd=3)
 
 #Figure.1C
 #dev.new(width=5, height=5)
 #par(mar=c(5, 5, 4, 4))
-plot(L, y2(L, params,SM[i]), xlab="Favorable season (days)", ylab="Cohort Growth", cex=.1, cex.lab = 1.5, ylim=c(0,100))
+plot(L, y2(L, params,SM[i]), xlab="Favorable season (days)", ylab="Cohort Growth", main="Growth variation with seed size", cex=.1, cex.lab = 1.5, ylim=c(0,100))
 lines(L, y2(L, params1,SM[i]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "blue"))( 11 )[2] )
 lines(L, y2(L, params1,SM[5]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "blue"))( 11 )[6] )
 lines(L, y2(L, params1,SM[i+8]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "blue"))( 11 )[11] )
@@ -123,7 +125,7 @@ box(which = "plot", lty = "solid", col="black", lwd=3)
 #Dormancy
 dev.new(width=5, height=5)
 par(mar=c(5, 5, 4, 4))
-plot(L, y2(L, params1,SM[i]), xlab="Favorable season (days)", ylab="Cohort Growth", cex=.1, cex.lab = 1.5, ylim=c(20,100), main="Dormancy")
+plot(L, y2(L, params1,SM[i]), xlab="Favorable season (days)", ylab="Cohort Growth", cex=.1, cex.lab = 1.5, ylim=c(20,100), main="Dormancy - growth variation with seed size")
 lines(L, y2(L, params1,SM[i]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "blue"))( 11 )[1] )
 lines(L, y2(L, params1,SM[i+1]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "blue"))( 11 )[2] )
 lines(L, y2(L, params1,SM[i+2]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "blue"))( 11 )[3] )
@@ -135,14 +137,13 @@ lines(L, y2(L, params1,SM[i+7]), type = "l", lty="solid", lwd =3, col=colorRampP
 lines(L, y2(L, params1,SM[i+8]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "blue"))( 11 )[9] )
 lines(L, y2(L, params1,SM[i+9]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "blue"))( 11 )[10] )
 lines(L, y2(L, params1,SM[i+10]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "blue"))( 11 )[11] )
-
 #lines(L, y2(L, params,SM[i]), type = "l", lty="solid", lwd =3, col="darkred")
 box(which = "plot", lty = "solid", col="black", lwd=3)
 
 #Figure: Appendix - Non-dormancy
 dev.new(width=5, height=5)
 par(mar=c(5, 5, 4, 4))
-plot(L, y2(L, params,SM[i]), xlab="Favorable season (days)", ylab="Cohort Growth", cex=.1, cex.lab = 1.5, ylim=c(20,100), main="Non-dormancy")
+plot(L, y2(L, params,SM[i]), xlab="Favorable season (days)", ylab="Cohort Growth", cex=.1, cex.lab = 1.5, ylim=c(20,100), main="Growth variation with seed size - Non-dormancy")
 lines(L, y2(L, params,SM[i]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "darkred"))( 11 )[2] )
 lines(L, y2(L, params,SM[i+1]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "red"))( 11 )[3] )
 lines(L, y2(L, params,SM[i+2]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "red"))( 11 )[4] )
@@ -174,7 +175,6 @@ lines(L, y2(L, params1,SM[i+8]), type = "l", lty="solid", lwd =3, col=colorRampP
 # lines(L, y2(L, params1,SM[i+9]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("darkblue", "blue"))( 11 )[10] )
 lines(L, y2(L, params1,SM[i+10]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("darkblue", "blue"))( 11 )[11] )
 #1,4,7,9,11
-
 lines(L, y2(L, params,SM[i]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "darkred"))( 11 )[1] )
 # lines(L, y2(L, params,SM[i+1]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "darkred"))( 11 )[2] )
 # lines(L, y2(L, params,SM[i+2]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "red"))( 11 )[3] )
@@ -206,7 +206,7 @@ color.bar(colorRampPalette(c("yellow", "blue"))( 12 ), -1)
 color.bar(colorRampPalette(c("yellow", "red"))( 12 ), -1)
 
 #Plot mortality vs plant mass
-PS<-seq(0, 10, .01)
+Mg<-seq(0, 10, .01)
 M<-function(w, Mg) #L is lenght of the favorable season
 {
 	M<-1-(w-(1/(1+exp(Mg))))
@@ -218,17 +218,17 @@ par(mar=c(5, 5, 4, 4))
 
 dev.new(width=5, height=5)
 par(mar=c(5, 5, 4, 4))
-plot(PS, M(0.1,PS), xlab="Plant size (g)", ylab="Mortality rate (g g-1 day-1)", cex=.1, cex.lab = 1.5, xlim=c(0,7),ylim=c(0,2))
-lines(PS, M(0.1,PS), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[1] )
-lines(PS, M(0.2,PS), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[2] )
-lines(PS, M(0.3,PS), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[3] )
-lines(PS, M(0.4,PS), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[4] )
-lines(PS, M(0.5,PS), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[5] )
-lines(PS, M(0.6,PS), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[6] )
-lines(PS, M(0.7,PS), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[7] )
-lines(PS, M(0.8,PS), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[8] )
-lines(PS, M(0.9,PS), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[9] )
-lines(PS, M(1,PS), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[10] )
+plot(Mg, M(0.1,Mg), xlab="Plant size (g)", ylab="Mortality rate (g g-1 day-1)", cex=.1, cex.lab = 1.5, xlim=c(0,7),ylim=c(0,2))
+lines(Mg, M(0.1,Mg), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[1] )
+lines(Mg, M(0.2,Mg), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[2] )
+lines(Mg, M(0.3,Mg), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[3] )
+lines(Mg, M(0.4,Mg), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[4] )
+lines(Mg, M(0.5,Mg), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[5] )
+lines(Mg, M(0.6,Mg), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[6] )
+lines(Mg, M(0.7,Mg), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[7] )
+lines(Mg, M(0.8,Mg), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[8] )
+lines(Mg, M(0.9,Mg), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[9] )
+lines(Mg, M(1,Mg), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("red", "blue"))( 11 )[10] )
 box(which = "plot", lty = "solid", col="black", lwd=3)
 color.bar(colorRampPalette(c("red", "blue"))(10), 1)
 
@@ -275,7 +275,7 @@ box(which = "plot", lty = "solid", col="black", lwd=3)
 
 #Risk of seed mortality as a function of seed size
 
-params <- list("Lmax"=Lmax, "tp"=tp, "p"=p, "Y"=Y,"r"=r,  "w"=w)
+params <- list("Lmax"=Lmax, "tau"=tau, "p"=p, "Y"=Y,"r"=r,  "w"=w)
 
 SM<-seq(0,5,0.01)
 R<-function(L, params, SM) #L is length of the favorable season
@@ -297,7 +297,7 @@ plot(SM, R(L,params,SM), xlab="Seed size (g)", ylab="Risk", cex=.1, cex.lab = 1.
 lines(SM, R(L,params,SM), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "blue"))( 11 )[11] )
 box(which = "plot", lty = "solid", col="black", lwd=3)
 
-params <- list("Lmax"=Lmax, "tp"=tp, "p"=p, "Y"=Y,"r"=r,  "m"=m)
+params <- list("Lmax"=Lmax, "tau"=tau, "p"=p, "Y"=Y,"r"=r,  "m"=m)
 
 #SM<-seq(0,5,0.01)
 
@@ -317,16 +317,16 @@ survival<-function(L, params, SM) #L is length of the favorable season
 }
 dev.new(width=5, height=5)
 par(mar=c(5, 5, 4, 4))
-plot(L, survival(L,params,SM), xlab="Length of the favorable season (days)", ylab="Seed survival", cex=.1, cex.lab = 1.5)
-lines(L, survival(L,params,SM), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "blue"))( 11 )[11] )
+plot(L, survival(L,params,SM[1]), xlab="Length of the favorable season (days)", ylab="Seed survival", cex=.1, cex.lab = 1.5)
+lines(L, survival(L,params,SM[1]), type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "blue"))( 11 )[11] )
 box(which = "plot", lty = "solid", col="black", lwd=3)
 
 #Persistence of seeds in the soil as a function of length of the favorable season
 i=1
 SM<-seed.mass
-m=0.9
+w=0.9
 Lmax= 365 # length of year
-tp=100 #days to germination ; change from 0 to 100
+tau=100 #days to germination ; change from 0 to 100
 p= 0.5 #probability of germination or germination fraction
 Y=100 #repoductive output
 r=0.001 #growth rate
@@ -419,24 +419,24 @@ seed.mass<-seq(0.01,5, 0.01)
 
 #m<-c(0.5,0.6,0.7,0.8,0.9)
 SM<-seed.mass
-m = 0.9
+w = 0.9
 #m=0.5
 Lmax= 365 # length of year
-tp=80 #days to germination ; change from 0 to 100
+tau=80 #days to germination ; change from 0 to 100
 p= 0.5 #probability of germination or germination fraction
 Y=100 #repoductive output
 r=0.001 #growth rate
 s=1
 
 
-evaluate.L<-function(L, SM,m) #L is length of the favorable season
+evaluate.L<-function(L, SM, w) #L is length of the favorable season
 {
 	n<-Y/SM #number of seeds is the cohort seed yield/seed mass
-	Gf<- Y*p*exp(r*(L-tp)) # for non-dormancy G=1
-	PS<-Gf/(n*p) #plant size
+	Gf<- Y*p*exp(r*(L-tau)) # for non-dormancy G=1
+	Mg<-Gf/(n*p) #plant size
 	LL<-(Lmax-L)/Lmax #fraction of the year that is favorable
 	
-	M<-1-(m-(1/(1+exp(PS)))) #mortality of seedlings in in the unfavorable season for the ND case	
+	M<-1-(w-(1/(1+exp(Mg)))) #mortality of seedlings in in the unfavorable season for the ND case	
 	
 	Yfu<-Gf*(1-(M*(LL))) #growth during favorable and unfavorable season; this is only calculated for non-dormancy, otherwise 0
 
@@ -451,16 +451,16 @@ evaluate.L<-function(L, SM,m) #L is length of the favorable season
 }
 
 #Function to numerical find L values where growth of ND and D are equivalent
-L<-c()
-SM.L<-c()
+L        <-      c()
+SM.L     <-      c()
 	for (i in 1:500){
-		results<-optim(rnorm(1), evaluate.L, SM=SM[i], m=0.9)
-		L[i]<-results[[1]]
+		results   <-optim(rnorm(1), evaluate.L, SM=SM[i], w=0.9)
+		L[i]      <-results[[1]]
 	}
 	
-	L<-data.frame(L)
-	SM<-data.frame(SM)
-	SM.L<-cbind(SM,L)
+	L      <-      data.frame(L)
+	SM     <-      data.frame(SM)
+	SM.L   <-      cbind(SM,L)
 #	SM.L<-merge(SM.L,SM.L,by.x=SM, by.y=SM)
 #}
 lines(SM.L$SM, SM.L$L,type = "l", lty="solid", lwd =3, col=colorRampPalette(c("yellow", "blue"))( 11 )[11] )
